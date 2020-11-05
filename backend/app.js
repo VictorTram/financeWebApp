@@ -9,6 +9,12 @@ var usersRouter = require('./routes/users');
 
 var app = express();
 
+// Mongoose to be used to connect to mongoDB
+var mongoose = require('mongoose');
+
+// MongoDB server connectionString 
+var config = require('./config');
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -21,6 +27,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+
+// Initialize mongoDB Connection
+function _initializeModels(){
+  mongoose.connect(config.db);
+  mongoose.connection.on('error', (err)=>{
+    console.log("mongodb failed to connect");
+  })
+}
+
+_initializeModels();
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -37,5 +53,7 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+app.listen(app.get('port'));
 
 module.exports = app;
