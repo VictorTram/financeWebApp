@@ -1,0 +1,42 @@
+<p>edit works!</p>
+<div>
+    <br>
+            <div>
+                <label for="name">Name: </label>
+                <input id="name" type="text" [(ngModel)]="transaction.name">
+            </div>
+            <div>
+                <label for="date">Date: </label>
+                <input id="date" type="date" [(ngModel)]="transaction.purchaseDate">
+            </div>
+            <div>
+                <label for="category">Category: </label>
+                <input id="category" type="text" [(ngModel)]="transaction.category">
+            </div>
+            <div>
+                <label for="price">Price: </label>
+                <input id="price" type="number" [(ngModel)]="transaction.price">
+            </div>
+            <div>
+                <label for="description">Description: </label>
+                <input id="description" type="text" [(ngModel)]="transaction.description">
+            </div>
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="customSwitch1" [value]="transaction.necessary" [(ngModel)]="transaction.necessary">
+                <label class="custom-control-label" for="customSwitch1" >Necessary:</label>
+            </div>
+        
+            <button type="submit" (click)="updateTransaction()">Submit</button>
+        
+</div>
+
+<!-- 
+name: "",
+purchaseDate: "",
+entryDate: Date.now,
+category: '',
+necessary: false,
+price: '',
+description: '' -->
+
+

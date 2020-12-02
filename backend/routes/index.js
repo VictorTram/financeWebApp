@@ -7,6 +7,10 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
-router.post('/transactions', transactions.createTransaction);
+router.get('/transactions', transactions.getTransactions);
+router.get('/transactions/:id', transactions.getTransaction);
+router.post('/transactions/create', transactions.createTransaction);
+router.put('/transactions/:id', transactions.updateTransactions);
+router.delete('/transactions/:id', transactions.deleteTransaction);
 
 module.exports = router;
