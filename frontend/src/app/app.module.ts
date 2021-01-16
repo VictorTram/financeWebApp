@@ -7,12 +7,9 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { SummaryComponent } from './components/analytics/summary/summary.component';
 import { CreateComponent } from './components/data/create/create.component';
+import { DetailsComponent } from './components/data/details/details.component';
 import { EditComponent } from './components/data/edit/edit.component';
 import { ListComponent } from './components/data/list/list.component';
-
-
-
-
 
 
 @NgModule({
@@ -21,6 +18,7 @@ import { ListComponent } from './components/data/list/list.component';
     ListComponent,
     CreateComponent,
     EditComponent,
+    DetailsComponent,
     SummaryComponent
   ],
   imports: [

@@ -1,5 +1,11 @@
-var config = {
-    db: 'mongodb://127.0.0.1:27017/FinanceApp'
-}
+const Pool = require('pg').Pool;
 
-module.exports = config;
+var pool = new Pool ({
+    user: 'me',
+    host: 'localhost',
+    database:'api',
+    password: 'password',
+    port: 5432
+});
+
+exports.pool = pool;

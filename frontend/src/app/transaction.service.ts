@@ -11,7 +11,7 @@ export class TransactionService {
   constructor( private http: HttpClient) { }
 
   getTransactions(){
-    console.log(`Getting Transactions from ${this.uri}/api/ingredients`);
+    console.log(`Getting Transactions from ${this.uri}/transactions/`);
     return this.http.get(`${this.uri}/transactions/`);
   }
 
@@ -19,24 +19,29 @@ export class TransactionService {
     return this.http.get(`${this.uri}/transactions/${id}`);
   }
 
-  createTransaction(name, purchaseDate, entryDate, category,necessary,price,description){
+  createTransaction(name, purchyear, purchmonth, purchday, labels, necessary, price, description){
     const transaction = {
       name: name,
-      purchaseDate: purchaseDate,
-      entryDate: entryDate,
+      purchyear: purchyear,
+      purchmonth: purchmonth,
+      purchday: purchday,
+      labels: labels,
       necessary: necessary,
       price: price,
       description: description,
     }
     console.log('Creating new Transaction: ' + transaction.name);
+    console.log(transaction);
     return this.http.post(`${this.uri}/transactions/create`, transaction);
   }
 
-  updateTransaction(id, name, purchaseDate, category, necessary, price, description){
+  updateTransaction(id, name, purchyear, purchmonth, purchday, labels, necessary, price, description){
     const transaction = {
       name: name,
-      purchaseDate: purchaseDate,
-      category: category,
+      purchyear: purchyear,
+      purchmonth: purchmonth,
+      purchday: purchday,
+      labels: labels,
       necessary: necessary,
       price: price,
       description: description,
@@ -51,6 +56,10 @@ export class TransactionService {
     //const transaction = this.getTransactionById(id);
     //console.log(`Deleting Transaction:  ${transaction.name}`)
     console.log(`Deleting Transaction: ${id}`);
-    return this.http.delete(`${this.uri}/transactions/${id}`);
+    console.log(`${this.uri}/transactions/${id}`);
+    return this.http.delete(`${this.uri}/transactions/${id}`)
+    .subscribe(() => {
+      console.log('Deleted');
+    });
   }
 }

@@ -20,29 +20,13 @@ export class CreateComponent implements OnInit {
 
   createForm: FormGroup;
 
-  // constructor(
-  //   private transactionService: TransactionService, 
-  //   private fb: FormBuilder, 
-  //   private router: Router) { 
-  //     this.createForm = this.fb.group({
-  //       name: ['', Validators.required],
-  //       purchaseDate: ['', Validators.required],
-  //       entryDate: Date.now,
-  //       category: '',
-  //       necessary: '',
-  //       price: '',
-  //       description: ''
-  //     });
-  //   }
   constructor(private transactionService: TransactionService, private router: Router){}
-
-  name = "";
 
   transaction = {
     name: "",
-    purchaseDate: "",
+    purchDate:'',
     entryDate: Date.now,
-    category: '',
+    labels: '',
     necessary: false,
     price: '',
     description: ''
@@ -53,11 +37,19 @@ export class CreateComponent implements OnInit {
   } 
 
   createTransaction(){
-    const transaction = this.transaction;
+    var date = this.transaction.purchDate.split('-');
+    console.log(this.transaction.purchDate);
     console.log(`Adding entry ${name}`);
-    this.transactionService.createTransaction(transaction.name, transaction.purchaseDate, transaction.entryDate, transaction.category,transaction.necessary,transaction.price,transaction.description).subscribe(()=>{
-      // Maybe add a notification when you go back to the List page, that says:
-      // 'Transaction: "Something" has been added.
+    this.transactionService.createTransaction(
+      this.transaction.name,
+      date[0],
+      date[1],
+      date[2],
+      this.transaction.labels,
+      this.transaction.necessary,
+      this.transaction.price,
+      this.transaction.description)
+      .subscribe(()=>{
       this.router.navigate(['/list']);
     })
   }

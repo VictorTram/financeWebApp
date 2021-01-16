@@ -28,12 +28,23 @@ export class ListComponent implements OnInit {
       console.log("Pulling Data");
       this.transactions = data;
       console.log("Requesting Data...");
-      console.log(this.transactions);
+      console.log(this.transactions[1]);
     })
+  }
+
+  detailsTransaction(id){
+    console.log(`Getting Details for Transaction: ${id}`);
+    this.router.navigate([`details/${id}`]);
   }
 
   editTransaction(id){
     console.log(`Editing ${id}`);
     this.router.navigate([`/edit/${id}`]);
+  }
+
+  deleteTransaction(id){
+    console.log(`Deleting ${id}`);
+    this.transactionService.deleteTransaction(id);
+    this.fetchTransactions();
   }
 }
