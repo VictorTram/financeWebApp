@@ -22,22 +22,13 @@ var createTransaction = function(req,res){
         [name, purchyear, purchmonth, purchday, entrydate, necessary, labels, price, description],
         (error, results) => {
             if(error){
-                console.log(req);
+                //console.log(req);
                 throw error;
             }
             res.status(201).send({message: `Transaction added with name: ${name}`});
             analytics.updateMetrics(purchyear,purchmonth);
         }
     );
-}
-
-var getTransactions = function(req,res){
-    pool.query('SELECT * FROM transactions ORDER BY id ASC', (error, results) => {
-        if(error){
-            throw error;
-        }
-        res.status(200).json(results.rows);
-    })
 }
 
 var getTransaction = function(req,res){
@@ -49,6 +40,39 @@ var getTransaction = function(req,res){
         res.status(200).json(results.rows);
     })
 }
+
+var getTransactions = function(req,res){
+    pool.query('SELECT * FROM transactions ORDER BY id ASC', (error, results) => {
+        if(error){
+            throw error;
+        }
+        res.status(200).json(results.rows);
+    })
+}
+
+var getTransactionsYearly = function(req,res){
+    pool.query('SELECT * FROM transactions WHERE purchyear=$1',
+    [req.params.year],
+    (error,results)=>{
+        if(error){
+            throw error;
+        }
+        res.status(200).json(results.rows);
+    })
+}
+
+var getTransactionsMonthly = function(req,res){
+    console.log(req.params.month);
+    pool.query('SELECT * FROM transactions WHERE purchyear=$1 AND purchmonth=$2',
+    [req.params.year,req.params.month],
+    (error,results)=>{
+        if(error){
+            throw error;
+        }
+        res.status(200).json(results.rows);
+    })
+}
+
 
 var updateTransactions = function(req,res){
     console.log("Trying to update " + req.body.name);
@@ -105,6 +129,8 @@ module.exports = {
     createTransaction,
     getTransaction,
     getTransactions,
+    getTransactionsYearly,
+    getTransactionsMonthly,
     updateTransactions,
     deleteTransaction,
 };

@@ -90,6 +90,7 @@ var getAnalyticForMonth = function(req,res){
     })
 }
 var getAnaylticForYear = function(req,res){
+    console.log(req.params.year + "Text");
     pool.query('SELECT * FROM monthlymetric WHERE year = $1',
     [req.params.year], 
     (error, results) => {
