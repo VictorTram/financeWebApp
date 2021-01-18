@@ -16,7 +16,7 @@ export class MetricsService {
   }
 
   getMetricsByYear(year){
-    return this.http.get(`${this.uri}/analytics/${year}}`);
+    return this.http.get(`${this.uri}/analytics/${year}`);
   }
 
   getMetricsByYearAndMonth(year,month){

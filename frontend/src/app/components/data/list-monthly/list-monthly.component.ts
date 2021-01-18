@@ -1,29 +1,36 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Transaction } from '../../../transaction.model';
 import { TransactionService } from '../../../transaction.service';
 
 @Component({
-  selector: 'app-list',
-  templateUrl: './list.component.html',
-  styleUrls: ['./list.component.css']
+  selector: 'app-list-monthly',
+  templateUrl: './list-monthly.component.html',
+  styleUrls: ['./list-monthly.component.css']
 })
-export class ListComponent implements OnInit {
+export class ListMonthlyComponent implements OnInit {
 
   transactions: Transaction[];
   displayedColumns = ['Name', 'Purchase Date', 'Category', 'Price','Necessary', 'Actions'];
+  year: Number;
+  month: Number;
   
-  constructor(private transactionService: TransactionService, private router: Router) { }
+  constructor(private transactionService: TransactionService, private router: Router, private route: ActivatedRoute) { }
 
   ngOnInit(): void {
     console.log('ngOnItList');
-    this.fetchTransactions();
+    this.route.params.subscribe( params => {
+      console.log(params);
+      this.year=params.year;
+      this.month=params.month;
+      this.fetchTransactions(this.year,this.month);
+    })
   }
 
-  fetchTransactions(){
+  fetchTransactions(year,month){
     console.log("Fetching Transactions");
     this.transactionService
-    .getTransactions()
+    .getTransactionsMonthly(year,month)
     .subscribe( (data: Transaction[]) => {
       console.log("Pulling Data");
       this.transactions = data;
@@ -45,7 +52,6 @@ export class ListComponent implements OnInit {
   deleteTransaction(id){
     console.log(`Deleting ${id}`);
     this.transactionService.deleteTransaction(id);
-    this.fetchTransactions();
+    this.fetchTransactions(this.year,this.month);
   }
-
 }

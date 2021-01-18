@@ -19,6 +19,16 @@ export class TransactionService {
     return this.http.get(`${this.uri}/transactions/${id}`);
   }
 
+  getTransactionsAnnualy(year){
+    return this.http.get(`${this.uri}/transactions/list/${year}`);
+
+  }
+
+  getTransactionsMonthly(year,month){
+    return this.http.get(`${this.uri}/transactions/list/${year}/${month}`);
+
+  }
+
   createTransaction(name, purchyear, purchmonth, purchday, labels, necessary, price, description){
     const transaction = {
       name: name,
