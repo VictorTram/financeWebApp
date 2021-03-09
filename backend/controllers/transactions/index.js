@@ -9,33 +9,37 @@ var updateAnalytics = (date) => new Promise ((resolve) =>{
     //resolve("Done");
 })
 
-var getDates = (trans) => new Promise (resolve => {
+var getDates = (trans) => new Promise ( async(resolve) => {
+    console.log(trans);
     var oldDate= {};
     var newDate= {};
 
-    pool.query('SELECT purchyear, purchmonth FROM transactions WHERE id = $1',
-        [trans.id],
-        (error, results) => {
-            if (error) {
-                throw error;
-            }
-            console.log("Breakpoint 1", results.rows[0]);
-            date = results.rows[0];       
-    });
+    console.log("===== Get Dates =====");
 
-    pool.query('UPDATE transactions SET name=$1, purchyear=$2, purchmonth = $3, purchday = $4, necessary = $5, labels = $6, price = $7, description = $8 WHERE id = $9',
-        [trans.name, trans.year, trans.month, trans.day, trans.necessary, trans.labels, trans.price, trans.description, trans.id,],
-        (error, results) => {
-            if(error){
-                throw error;
-            }
-            console.log("breakpoint 2");
+    pool.query('SELECT purchyear, purchmonth FROM transactions WHERE id = $1',
+        [trans.id])
+    .then( (result)=> {
+        console.log("Breakpoint 1", result.rows[0]);
+        oldDate.year = result.rows[0].purchyear;
+        oldDate.month = result.rows[0].purchmonth;       
+        console.log("inside oldDate", oldDate);
+
+        pool.query('UPDATE transactions SET name=$1, purchyear=$2, purchmonth = $3, purchday = $4, necessary = $5, labels = $6, price = $7, description = $8 WHERE id = $9',
+        [trans.name, trans.year, trans.month, trans.day, trans.necessary, trans.labels, trans.price, trans.description, trans.id,])
+        .then( ()=>{
             newDate.year = trans.year;
             newDate.month = trans.month;
-            console.log(newDate);
-    });
-  
-    resolve( [oldDate,newDate]);
+            console.log("oldDate:", oldDate);
+            console.log("newDate:", newDate)
+            resolve( [oldDate, newDate]);
+        })
+        .catch( (result) =>{
+            console.log(result);
+        })
+    })
+    .catch( (error) =>{
+        console.log(error);
+    })
 })
 
 var createTransaction = function (req,res){
@@ -68,7 +72,7 @@ var createTransaction = function (req,res){
             updateAnalytics(date)
             .then((result) =>{
                 console.log(result);
-                res.status(200).send({message: `Transaction with Name: ${name} has been created`});
+                res.status(200).send({message: `Transaction with Name: ${result} has been created`});
             })
             .catch((result)=>{
                 res.status(400).send({message: 'Encountered issue in creating transaction', error: error});
@@ -78,7 +82,7 @@ var createTransaction = function (req,res){
 }
 
 
-var updateTransactions = function(req, res){
+var updateTransactions = async(req, res) => {
     var trans = {
         id: req.params.id,
         name: req.body.name,
@@ -91,9 +95,9 @@ var updateTransactions = function(req, res){
         description: req.body.description,
     }
     
-    getDates(trans)
+    await getDates(trans)
     .then( async (result)=>{
-        console.log(result);
+        console.log("Results",result);
         await updateAnalytics(result[0]);
         await updateAnalytics(result[1]);
     })

@@ -124,17 +124,16 @@ var updateMetrics = async(date, calculations) =>{
     
 }
 
-var deleteMetric = function(date){
-    console.log("Deleting Metrics");
+var deleteMetric = (date) => new Promise( (resolve,reject)=>{
+    console.log("Deleting Metrics ", date);
+
     pool.query('DELETE FROM monthlymetric WHERE year=$1 AND month=$2',
-    [date.year, date.month],
-    (error, results) => {
-        if(error){
-            throw error;
-        }
+    [date.year, date.month])
+    .then( ()=>{
         console.log(`Deleted Metric, due to no existing transactions in ${date.year} - ${date.month}`);
+        resolve("Deletion completed");
     })
-}
+});
 
 var updateAnalytics =  async(date) => {
     this.date =date; 
@@ -145,34 +144,12 @@ var updateAnalytics =  async(date) => {
         await updateMetrics(date, result);
         console.log("Finishing Then");
     })
-    .catch( (result) =>{
+    .catch( async(result) =>{
         console.log("First Catch ", result);
-        console.log(result.message);
-        deleteMetric(result.date);
+        await deleteMetric(date);
     })
     console.log("Finishing Promise");
     return "Completed";
-        
-        // ifEmpty(date)
-        // .catch( (result)=> {
-        //     console.log('==> updateMetrics -> Catch ', result);
-        //     return createMetric(result);
-        // })
-        // .then((result)=>{
-        //     console.log('==> updateMetrics -> First Then', result);
-        //     // calculations = collectTransactions(date);
-        //     // console.log("Calculations:", calculations);
-        //     return collectTransactions(result);
-        // })
-        // .then( (result)=>{
-        //     console.log("==> updateMetrics -> Second Then ", result);
-        //     updateMetrics(date, result);
-        // })
-        // .catch( (error)=>{
-        //     console.log(error);
-        //     deleteMetric(date);
-        // })
-        // console.log("Outside");
 }
 
 var getAnalyticForMonth = function(req, res){
