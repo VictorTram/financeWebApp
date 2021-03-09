@@ -13,7 +13,8 @@ var cors =require('cors');
 
 var app = express();
 
-
+// Needed for Middlware
+// Extracts the entire body portion of an incoming request stream and exposes it on req.body
 app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({

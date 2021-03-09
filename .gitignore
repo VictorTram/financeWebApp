@@ -1,4 +1,7 @@
 /backend/queries.js
 /backend/config/
 /backend/node_modules/
+/backend/controllers/analytics/index-old.js
+/backend/controllers/transactions/index-old.js
+/backend/controllers/transactions/index-backup.js
 /node_modules/

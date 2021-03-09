@@ -14,17 +14,3 @@ export interface Transaction {
     price: Number,
     description: String,
 }
-
-/*
-name
-purchYear
-purchMonth
-purchDay
-entrydate
-necessary
-labels
-price
-decription
- 
- 
- */

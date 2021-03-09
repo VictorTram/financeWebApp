@@ -1,39 +1,162 @@
-const { response } = require('../../app');
+const {response} = require('../../app');
 
 const pool = require('../../config').pool;
-const analytics = require('../analytics');
+const analytics = require('../analytics/index');
+//const transUpdates = require('/transactionUpdates');
 
-var createTransaction = function(req,res){
+var updateAnalytics = (date) => new Promise ((resolve) =>{
+    resolve(analytics.updateAnalytics(date));
+    //resolve("Done");
+})
+
+var getDates = (trans) => new Promise (resolve => {
+    var oldDate= {};
+    var newDate= {};
+
+    pool.query('SELECT purchyear, purchmonth FROM transactions WHERE id = $1',
+        [trans.id],
+        (error, results) => {
+            if (error) {
+                throw error;
+            }
+            console.log("Breakpoint 1", results.rows[0]);
+            date = results.rows[0];       
+    });
+
+    pool.query('UPDATE transactions SET name=$1, purchyear=$2, purchmonth = $3, purchday = $4, necessary = $5, labels = $6, price = $7, description = $8 WHERE id = $9',
+        [trans.name, trans.year, trans.month, trans.day, trans.necessary, trans.labels, trans.price, trans.description, trans.id,],
+        (error, results) => {
+            if(error){
+                throw error;
+            }
+            console.log("breakpoint 2");
+            newDate.year = trans.year;
+            newDate.month = trans.month;
+            console.log(newDate);
+    });
+  
+    resolve( [oldDate,newDate]);
+})
+
+var createTransaction = function (req,res){
+    var date={};
     var name = req.body.name;
-    var purchyear = req.body.purchyear;
-    var purchmonth = req.body.purchmonth;
-    var purchday = req.body.purchday;
+    var year = req.body.purchyear;
+    var month = req.body.purchmonth;
+    var day = req.body.purchday;
     var entrydate = req.body.entrydate;
     var necessary = req.body.necessary;
     var labels = req.body.labels;
     var price = req.body.price;
     var description = req.body.description;
 
-    console.log("Creating a new Transaction");
-    console.log(name);
-    console.log(price);
+    date.year = year;
+    date.month = month;
+
+    //console.log("Creating a new Transaction");
     pool.query(
-        'INSERT INTO transactions (name, purchyear, purchmonth, purchday, entrydate, necessary, labels, price, description) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)', 
-        [name, purchyear, purchmonth, purchday, entrydate, necessary, labels, price, description],
+        'INSERT INTO transactions (name, purchyear, purchmonth, purchday, entrydate, necessary, labels, price, description) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+        [name, year, month, day, entrydate, necessary, labels, price, description],
         (error, results) => {
             if(error){
-                //console.log(req);
                 throw error;
             }
-            res.status(201).send({message: `Transaction added with name: ${name}`});
-            analytics.updateMetrics(purchyear,purchmonth);
+            console.log("test",date.year);
+            
+            
+            //console.log("Creating Transaction");
+            updateAnalytics(date)
+            .then((result) =>{
+                console.log(result);
+                res.status(200).send({message: `Transaction with Name: ${name} has been created`});
+            })
+            .catch((result)=>{
+                res.status(400).send({message: 'Encountered issue in creating transaction', error: error});
+            });    
         }
-    );
+    )
 }
 
-var getTransaction = function(req,res){
+
+var updateTransactions = function(req, res){
+    var trans = {
+        id: req.params.id,
+        name: req.body.name,
+        year: req.body.purchyear,
+        month: req.body.purchmonth,
+        day: req.body.purchday,
+        necessary: req.body.necessary,
+        labels: req.body.labels,
+        price: req.body.price,
+        description: req.body.description,
+    }
+    
+    getDates(trans)
+    .then( async (result)=>{
+        console.log(result);
+        await updateAnalytics(result[0]);
+        await updateAnalytics(result[1]);
+    })
+    .then( (result)=>{
+        console.log("breakpoint 3: Then");
+        res.status(200).send({message: `Transaction with Id: ${trans.id} has been modified`, status: result});
+    })
+    .catch( ( error)=>{
+        console.log("breakpoint 4?: Catch");
+        res.status(400).send({message: `Error occurred while updating: ${error}`})
+    })
+    .finally( ()=> {
+        //Might not need
+    })  
+
+}
+
+var deleteTransactions = function(req, res){
+    var date ={};
+    pool.query('SELECT purchyear, purchmonth FROM transactions WHERE id=$1',
+    [req.params.id],
+    (error, results) => {
+        if(error){
+            throw error;
+        }
+        console.log("results: ", results)
+        date.year = results.rows[0].purchyear;
+        date.month = results.rows[0].purchmonth;
+    })
+
+    pool.query('DELETE FROM transactions WHERE id = $1',
+    [req.params.id],
+    (error, results) => {
+        if(error){
+            throw error;
+        }
+        console.log("Something", req.params);
+        console.log(`Deleted transaction with ID: ${req.params.id}`);
+        updateAnalytics(date)
+        .then( (result) =>{
+            res.status(200).send({message: `Transaction with Id: ${req.params.id} has been deleted`});
+        });  
+    })
+}
+
+
+
+// Is this even necessary?
+var updates = async(oldDate, newDate) => {
+    console.log("breakpoint 3: Update old");
+    await updateAnalytics(oldDate);
+    console.log("breakpoint 4: Update new");
+    await updateAnalytics(newDate);
+    return;
+}
+
+
+
+var getTransaction = function(req, res){
     console.log(`Getting transaction by ID ${req.params.id}`);
-    pool.query('SELECT * FROM transactions WHERE id=$1', [req.params.id], (error, results) =>{
+    pool.query('SELECT * FROM transactions WHERE id = $1',
+    [req.params.id],
+    (error, results) => {
         if(error){
             throw error;
         }
@@ -41,8 +164,9 @@ var getTransaction = function(req,res){
     })
 }
 
-var getTransactions = function(req,res){
-    pool.query('SELECT * FROM transactions ORDER BY id ASC', (error, results) => {
+var getTransactions = function(req, res){
+    pool.query('SELECT * FROM transactions Order BY id ASC',
+    (error, results) => {
         if(error){
             throw error;
         }
@@ -50,10 +174,10 @@ var getTransactions = function(req,res){
     })
 }
 
-var getTransactionsYearly = function(req,res){
-    pool.query('SELECT * FROM transactions WHERE purchyear=$1',
+var getTransactionsYearly = function(req, res){
+    pool.query('SELECT * FROM transactions WHERE purchyear = $1',
     [req.params.year],
-    (error,results)=>{
+    (error, results) => {
         if(error){
             throw error;
         }
@@ -61,69 +185,16 @@ var getTransactionsYearly = function(req,res){
     })
 }
 
-var getTransactionsMonthly = function(req,res){
-    console.log(req.params.month);
-    pool.query('SELECT * FROM transactions WHERE purchyear=$1 AND purchmonth=$2',
-    [req.params.year,req.params.month],
-    (error,results)=>{
+var getTransactionsMonthly = function(req, res){
+    pool.query('SELECT * FROM transactions WHERE purchyear = $1 AND purchmonth = $2',
+    [req.params.year, req.params.month],
+    (error, results) => {
         if(error){
             throw error;
         }
         res.status(200).json(results.rows);
     })
 }
-
-
-var updateTransactions = function(req,res){
-    console.log("Trying to update " + req.body.name);
-    var name = req.body.name;
-    var purchyear = req.body.purchyear;
-    var purchmonth = req.body.purchmonth;
-    var purchday = req.body.purchday;
-    var necessary = req.body.necessary;
-    var labels = req.body.labels;
-    var price = req.body.price;
-    var description = req.body.description;
-    var id = req.params.id;
-    console.log(req.params);
-    pool.query(
-        'UPDATE transactions SET name = $1, purchyear = $2, purchmonth = $3, purchday = $4, necessary = $5, labels = $6, price = $7, description = $8 WHERE id=$9',
-        [name, purchyear, purchmonth, purchday, necessary, labels, price, description, id],
-        (error, results) => {
-            if(error) {
-                throw error;
-            }
-            res.status(200).send({message: `Transaction modified with ID: ${id}`});
-            analytics.updateMetrics(purchyear,purchmonth);
-        }
-    );
-}
-
-var deleteTransaction = function(req,res){
-    console.log(req.params);
-    const id = parseInt(req.params.id);
-
-    pool.query('SELECT * FROM transactions WHERE id=$1', [id], (error, results) =>{
-        if(error){
-            throw error;
-        }
-        var year = results.rows[0].purchyear;
-        var month = results.rows[0].purchmonth;
-        
-
-        pool.query('DELETE FROM transactions WHERE id = $1;', [id], (error, results) => {
-            if(error){
-                res.status(500).send(error);
-                throw error;
-            }
-            res.status(200).json(`User deleted with  ID: ${id}`);
-            console.log(`Deleting Transaction with ${year} and ${month}`);
-            analytics.updateMetrics(year,month);
-        })
-        
-    });
-}
-
 
 module.exports = {
     createTransaction,
@@ -132,6 +203,5 @@ module.exports = {
     getTransactionsYearly,
     getTransactionsMonthly,
     updateTransactions,
-    deleteTransaction,
+    deleteTransactions,
 };
-
