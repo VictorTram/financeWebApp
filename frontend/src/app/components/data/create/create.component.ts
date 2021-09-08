@@ -3,6 +3,7 @@ import { FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TransactionService } from '../../../transaction.service';
 
+
 @Component({
   selector: 'app-create',
   templateUrl: './create.component.html',
@@ -21,11 +22,15 @@ export class CreateComponent implements OnInit {
   createForm: FormGroup;
 
   constructor(private transactionService: TransactionService, private router: Router){}
+  
+  currentDate = new Date().toLocaleDateString(
+    'en-CA'
+  );
 
   transaction = {
     name: "",
-    purchDate:'',
-    entryDate: Date.now,
+    purchDate: this.currentDate,
+    entryDate: this.currentDate,
     labels: '',
     necessary: false,
     price: '',
@@ -37,14 +42,16 @@ export class CreateComponent implements OnInit {
   } 
 
   createTransaction(){
+    console.log("Todays date: " + this.currentDate);
     var date = this.transaction.purchDate.split('-');
     console.log(this.transaction.purchDate);
-    console.log(`Adding entry ${name}`);
+    console.log(`Adding entry ${this.transaction.name}`);
     this.transactionService.createTransaction(
       this.transaction.name,
       date[0],
       date[1],
       date[2],
+      this.transaction.entryDate,
       this.transaction.labels,
       this.transaction.necessary,
       this.transaction.price,

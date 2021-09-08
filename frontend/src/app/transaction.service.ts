@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { MetricsService } from './metrics.service';
 
 @Injectable({
   providedIn: 'root'
@@ -8,7 +9,7 @@ export class TransactionService {
 
   uri = 'http://localhost:3000';
 
-  constructor( private http: HttpClient) { }
+  constructor( private http: HttpClient, private metricsService: MetricsService) { }
 
   getTransactions(){
     console.log(`Getting Transactions from ${this.uri}/transactions/`);
@@ -29,12 +30,13 @@ export class TransactionService {
 
   }
 
-  createTransaction(name, purchyear, purchmonth, purchday, labels, necessary, price, description){
+  createTransaction(name, purchyear, purchmonth, purchday, entrydate, labels, necessary, price, description){
     const transaction = {
       name: name,
       purchyear: purchyear,
       purchmonth: purchmonth,
       purchday: purchday,
+      entrydate: entrydate,
       labels: labels,
       necessary: necessary,
       price: price,
@@ -58,18 +60,14 @@ export class TransactionService {
     }
     console.log(name);
     console.log('Updating Transaction: ' + transaction.name);
-    console.log('Updating Necessary: ' + transaction.necessary);
     return this.http.put(`${this.uri}/transactions/${id}`, transaction);
   }
 
   deleteTransaction(id){
-    //const transaction = this.getTransactionById(id);
-    //console.log(`Deleting Transaction:  ${transaction.name}`)
     console.log(`Deleting Transaction: ${id}`);
     console.log(`${this.uri}/transactions/${id}`);
-    return this.http.delete(`${this.uri}/transactions/${id}`)
-    .subscribe(() => {
-      console.log('Deleted');
-    });
+    this.metricsService.getMetrics();
+    return this.http.delete(`${this.uri}/transactions/${id}`);
+
   }
 }

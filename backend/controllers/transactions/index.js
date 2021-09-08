@@ -115,31 +115,32 @@ var updateTransactions = async(req, res) => {
 
 }
 
-var deleteTransactions = function(req, res){
+var deleteTransactions = (req, res) => {
     var date ={};
+    console.log("Trying to delete ",req.params.id);
     pool.query('SELECT purchyear, purchmonth FROM transactions WHERE id=$1',
-    [req.params.id],
-    (error, results) => {
-        if(error){
-            throw error;
-        }
-        console.log("results: ", results)
-        date.year = results.rows[0].purchyear;
-        date.month = results.rows[0].purchmonth;
-    })
+    [req.params.id])
+    .then( (result)=>{
+        //console.log("results: ", result)
+        date.year = result.rows[0].purchyear;
+        date.month = result.rows[0].purchmonth;
 
-    pool.query('DELETE FROM transactions WHERE id = $1',
-    [req.params.id],
-    (error, results) => {
-        if(error){
-            throw error;
-        }
-        console.log("Something", req.params);
-        console.log(`Deleted transaction with ID: ${req.params.id}`);
-        updateAnalytics(date)
-        .then( (result) =>{
-            res.status(200).send({message: `Transaction with Id: ${req.params.id} has been deleted`});
-        });  
+        pool.query('DELETE FROM transactions WHERE id = $1',
+        [req.params.id])
+        .then( async(result)=>{
+            console.log(result);
+            console.log("Something", req.params);
+            console.log(`Deleted transaction with ID: ${req.params.id}`);
+            await updateAnalytics(date)
+            .then( (result) =>{
+                res.status(200).send({message: `Transaction with Id: ${req.params.id} has been deleted`});
+            });  
+        })
+        .catch((result)=> console.log)
+    })
+    .catch( (error)=> {
+        console.log("Failed ", error);
+
     })
 }
 
